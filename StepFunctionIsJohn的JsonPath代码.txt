@@ -1,0 +1,53 @@
+{
+  "QueryLanguage": "JSONPath",
+  "Comment": "A description of my state machine",
+  "StartAt": "Lambda Invoke",
+  "States": {
+    "Lambda Invoke": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "arn:aws:lambda:ap-northeast-1:442042515016:function:StepFunctionDemo-IsJohn:$LATEST"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "选择"
+    },
+    "选择": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$",
+          "StringMatches": "*John*",
+          "Next": "传递"
+        }
+      ],
+      "Default": "失败"
+    },
+    "传递": {
+      "Type": "Pass",
+      "End": true,
+      "Result": "WoHoo!!!"
+    },
+    "失败": {
+      "Type": "Fail",
+      "Cause": "这个人没见过",
+      "Error": "错误的名称在这",
+      "Comment": "这是备注信息"
+    }
+  }
+}
